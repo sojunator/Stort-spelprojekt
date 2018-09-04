@@ -1,0 +1,3 @@
+[submodule "thomas"]
+	path = thomas
+	url = https://github.com/Bojzen-I-Mitten/thomas
