@@ -11,7 +11,6 @@
 #include <assimp\Importer.hpp>
 #include "graphics\Sprite.h"
 #include "Physics.h"
-#include "utils\DebugTools.h"
 #include <AtlBase.h>
 #include <atlconv.h>
 #include "utils/d3d.h"

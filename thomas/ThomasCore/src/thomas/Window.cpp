@@ -1,6 +1,5 @@
 #include "Window.h"
 #include "Input.h"
-#include "utils\DebugTools.h"
 #include "ThomasCore.h"
 #include "utils\d3d.h"
 #include <imgui\imgui.h>
@@ -21,7 +20,6 @@ namespace thomas
 		if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
 			return true;
 		
-		utils::DebugTools::ProcessMessages(hWnd, message, wParam, lParam);
 		Window* window = GetWindow(hWnd);
 
 	
