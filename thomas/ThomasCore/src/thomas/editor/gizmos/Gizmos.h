@@ -7,7 +7,7 @@ namespace thomas
 	namespace utils { struct Ray; namespace buffers { class VertexBuffer; } }
 	namespace editor
 	{
-		class THOMAS_API Gizmos
+		class Gizmos
 		{
 
 		private:
@@ -29,7 +29,7 @@ namespace thomas
 				GizmoRenderCommand(std::vector<math::Vector3> v, math::Matrix m, math::Color c, D3D_PRIMITIVE_TOPOLOGY t, GizmoPasses p) :
 					vertexData(v), matrix(m), color(c), topology(t), pass(p) {};
 			};
-			
+
 		public:
 			static void DrawLines(std::vector<math::Vector3> lines, D3D_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 			static void TransferGizmoCommands();

@@ -23,7 +23,7 @@ namespace thomas
 
 		void Gizmos::DrawModel(resource::Model * model, int meshIndex, math::Vector3 position = math::Vector3::Zero, math::Quaternion rotation = math::Quaternion::Identity, math::Vector3 scale = math::Vector3::One)
 		{
-			
+
 			/*s_gizmoMaterial->SetShaderPass((int)GizmoPasses::SOLID);
 			s_gizmoMaterial->m_topology = D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 			s_gizmoMaterial->SetMatrix("gizmoMatrix", math::CreateMatrix(position, rotation, scale));
@@ -62,7 +62,7 @@ namespace thomas
 				s_gizmoMaterial->Draw(meshes[meshIndex]);
 			}*/
 		}
-		
+
 
 		void Gizmos::DrawCube(math::Vector3 center, math::Vector3 size)
 		{
@@ -145,8 +145,8 @@ namespace thomas
 			math::Vector3 incrementalCos = math::Vector3::One;
 			for (size_t i = 0; i < ringSegments; i++)
 			{
-				math::Vector3 pos = majorAxis*incrementalCos + origin;
-				pos = minorAxis*incrementalSin + pos;
+				math::Vector3 pos = majorAxis * incrementalCos + origin;
+				pos = minorAxis * incrementalSin + pos;
 				lines[i] = pos;
 				// Standard formula to rotate a vector.
 				math::Vector3 newCos = incrementalCos * cosDelta - incrementalSin * sinDelta;
@@ -202,7 +202,7 @@ namespace thomas
 			corners[0] = ray.position;
 			corners[1] = ray.position + ray.direction * 1000;
 
-			DrawLines(corners);		
+			DrawLines(corners);
 		}
 
 		void Gizmos::DrawFrustum(math::Vector3 center, float fov, float maxRange, float minRange, float aspect)
@@ -213,7 +213,7 @@ namespace thomas
 
 		void Gizmos::DrawFrustum(math::BoundingFrustum& frustrum)
 		{
-						
+
 			math::Vector3 corners[DirectX::BoundingFrustum::CORNER_COUNT];
 			frustrum.GetCorners(corners);
 
@@ -245,7 +245,7 @@ namespace thomas
 			lines[21] = corners[7];
 			lines[22] = corners[7];
 			lines[23] = corners[4];
-			
+
 
 			DrawLines(lines);
 		}
@@ -266,7 +266,7 @@ namespace thomas
 
 		void Gizmos::TransferGizmoCommands()
 		{
-			
+
 			s_prevGizmoCommands = s_gizmoCommands;
 		}
 
@@ -274,7 +274,7 @@ namespace thomas
 		{
 			for (GizmoRenderCommand& command : s_prevGizmoCommands)
 			{
-				
+
 				s_gizmoMaterial->SetShaderPass((int)command.pass);
 				s_gizmoMaterial->SetMatrix("gizmoMatrix", command.matrix);
 				s_gizmoMaterial->SetColor("gizmoColor", command.color);
@@ -312,7 +312,7 @@ namespace thomas
 			delete s_vertexBuffer;
 		}
 
-		
+
 		void Gizmos::SetColor(math::Color color)
 		{
 			s_color = color;
