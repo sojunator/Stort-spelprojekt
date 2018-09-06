@@ -56,7 +56,7 @@ namespace ThomasEditor
 
         private void ResetTreeView()
         {
-            this.Dispatcher.Invoke((Action)(() => 
+            this.Dispatcher.Invoke((Action)(() =>
             {
                 hierarchy.Items.Clear();
                 foreach (GameObject gObj in Scene.CurrentScene.GameObjects)
@@ -111,7 +111,7 @@ namespace ThomasEditor
                 {
                     foreach (GameObject oldItem in e.OldItems)
                     {
-                        oldItem.Destroy();
+                        //oldItem.Destroy();
                         DeleteObjectInTree(hierarchy.Items, oldItem);
                         ////oldItem.Destroy();
                         //foreach (TreeViewItem node in hierarchy.Items)

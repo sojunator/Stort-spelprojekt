@@ -64,26 +64,30 @@ namespace ThomasEngine
 
 	Scene ^ Scene::LoadScene(System::String ^ fullPath)
 	{
+		try {
+			s_loading = true;
 
-		s_loading = true;
+			using namespace System::Runtime::Serialization;
+			DataContractSerializerSettings^ serializserSettings = gcnew DataContractSerializerSettings();
+			auto list = Component::GetAllComponentTypes();
+			list->Add(SceneResource::typeid);
+			serializserSettings->KnownTypes = list;
+			serializserSettings->PreserveObjectReferences = true;
+			serializserSettings->DataContractSurrogate = gcnew SceneSurrogate();
+			DataContractSerializer^ serializer = gcnew DataContractSerializer(Scene::typeid, serializserSettings);
+			Xml::XmlReader^ file = Xml::XmlReader::Create(fullPath);
+			Scene^ scene = (Scene^)serializer->ReadObject(file);
+			file->Close();
 
-		using namespace System::Runtime::Serialization;
-		DataContractSerializerSettings^ serializserSettings = gcnew DataContractSerializerSettings();
-		auto list = Component::GetAllComponentTypes();
-		list->Add(SceneResource::typeid);
-		serializserSettings->KnownTypes = list;
-		serializserSettings->PreserveObjectReferences = true;
-		serializserSettings->DataContractSurrogate = gcnew SceneSurrogate();
-		DataContractSerializer^ serializer = gcnew DataContractSerializer(Scene::typeid, serializserSettings);
-		Xml::XmlReader^ file = Xml::XmlReader::Create(fullPath);
-		Scene^ scene = (Scene^)serializer->ReadObject(file);
-		file->Close();
-
-		scene->PostLoad();
-		s_loading = false;
-		if(Application::currentProject)
-			scene->m_relativeSavePath = fullPath->Replace(Application::currentProject->assetPath + "\\", "");
-		return scene;
+			scene->PostLoad();
+			s_loading = false;
+			if(Application::currentProject)
+				scene->m_relativeSavePath = fullPath->Replace(Application::currentProject->assetPath + "\\", "");
+			return scene;
+		}
+		catch (Exception^ e) {
+			return nullptr;
+		}
 
 	}
 
@@ -103,7 +107,6 @@ namespace ThomasEngine
 		for (int i = 0; i < m_gameObjects.Count; i++)
 		{
 			m_gameObjects[i]->Destroy();
-			i--;
 		}
 		m_gameObjects.Clear();
 		m_gameObjects.CollectionChanged -= sceneChanged;

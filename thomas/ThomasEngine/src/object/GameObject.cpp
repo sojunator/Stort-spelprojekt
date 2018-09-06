@@ -7,6 +7,9 @@
 
 void ThomasEngine::GameObject::Destroy()
 {
+	if (m_isDestroyed)
+		return;
+	m_isDestroyed = true;
 	Monitor::Enter(Scene::CurrentScene->GetGameObjectsLock());
 	Monitor::Enter(m_componentsLock);
 	for (int i = 0; i < m_components.Count; i++) {
@@ -16,7 +19,6 @@ void ThomasEngine::GameObject::Destroy()
 	Object::Destroy();
 	m_components.Clear();
 	Monitor::Exit(m_componentsLock);
-
 	Scene::CurrentScene->GameObjects->Remove(this);
 	ThomasWrapper::SelectedGameObjects->Remove(this);
 	Monitor::Exit(Scene::CurrentScene->GetGameObjectsLock());

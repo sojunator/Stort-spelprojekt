@@ -38,6 +38,7 @@ namespace ThomasEngine
 		}
 
 	internal:
+		bool m_isDestroyed = false;
 		System::Object^ m_componentsLock = gcnew System::Object();
 
 		void PostLoad()

@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.Build.Evaluation;
+using Microsoft.Build.Execution;
+using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using ThomasEngine;
 namespace ThomasEditor.utils
@@ -56,27 +59,41 @@ namespace ThomasEditor.utils
 
         public static bool BuildSolution()
         {
-            
-            Type type = Type.GetTypeFromProgID("VisualStudio.DTE");
-            object obj = Activator.CreateInstance(type, true);
-            EnvDTE.DTE dte = (EnvDTE.DTE)obj;
-            MessageFilter.Register();
-            try
-            {
-                dte.MainWindow.Visible = false; // optional if you want to See VS doing its thing
-                dte.Solution.Open(assemblyPath);
-                var solution = dte.Solution;
-                solution.SolutionBuild.Build(true);
-                dte.Quit();
-                MessageFilter.Revoke();
+
+            var properties = new Dictionary<string, string>();
+            properties["Configuration"] = "Debug";
+            properties["Platform"] = "Any CPU";
+            var request = new BuildRequestData(assemblyPath, properties, null, new string[] { "Build" }, null);
+            ProjectCollection pc = new ProjectCollection();
+            BuildParameters bp = new BuildParameters(pc);
+            var result = BuildManager.DefaultBuildManager.Build(bp, request);
+            if (result.OverallResult == BuildResultCode.Success)
                 return true;
-            }catch(Exception e)
+            else
             {
-                Debug.Log("Failed to open/build project: " + e.Message);
-                dte.Quit();
-                MessageFilter.Revoke();
+                Debug.Log("Failed to build project assembly.... :(");
                 return false;
             }
+            //Type type = Type.GetTypeFromProgID("VisualStudio.DTE");
+            //object obj = Activator.CreateInstance(type, true);
+            //EnvDTE.DTE dte = (EnvDTE.DTE)obj;
+            //MessageFilter.Register();
+            //try
+            //{
+            //    dte.MainWindow.Visible = false; // optional if you want to See VS doing its thing
+            //    dte.Solution.Open(assemblyPath);
+            //    var solution = dte.Solution;
+            //    solution.SolutionBuild.Build(true);
+            //    dte.Quit();
+            //    MessageFilter.Revoke();
+            //    return true;
+            //}catch(Exception e)
+            //{
+            //    Debug.Log("Failed to open/build project: " + e.Message);
+            //    dte.Quit();
+            //    MessageFilter.Revoke();
+            //    return false;
+            //}
         }
 
         public static void AddScript(string script)
