@@ -96,10 +96,14 @@ namespace ThomasEditor
 
                     StackPanel stack = foundItem.Header as StackPanel;
                     stack.DataContext = newPath;
-
-                    String visibleName = Path.GetFileNameWithoutExtension(newPath);
+                    String visibleName;
+                    if (Directory.Exists(newPath)) //dir
+                        visibleName = new DirectoryInfo(newPath).Name;
+                    else
+                        visibleName = Path.GetFileNameWithoutExtension(newPath);
 
                    (stack.Children[1] as EditableTextBlock).Text = visibleName;
+                    
                 }
                 else
                 {

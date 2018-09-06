@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using ThomasEngine;
 namespace ThomasEditor.utils
 {
@@ -11,6 +12,7 @@ namespace ThomasEditor.utils
             Type type = Type.GetTypeFromProgID("VisualStudio.DTE");
             object obj = Activator.CreateInstance(type, true);
             EnvDTE.DTE dte = (EnvDTE.DTE)obj;
+            MessageFilter.Register();
             try
             {
                 
@@ -34,12 +36,14 @@ namespace ThomasEditor.utils
                 // save and quit
                 dte.ExecuteCommand("File.SaveAll");
                 dte.Quit();
+                MessageFilter.Revoke();
                 return true;
 
             }
             catch(Exception e)
             {
                 Debug.Log("Error creating project: " + e.Message);
+                MessageFilter.Revoke();
                 return false;
             }
         }
@@ -56,7 +60,7 @@ namespace ThomasEditor.utils
             Type type = Type.GetTypeFromProgID("VisualStudio.DTE");
             object obj = Activator.CreateInstance(type, true);
             EnvDTE.DTE dte = (EnvDTE.DTE)obj;
-
+            MessageFilter.Register();
             try
             {
                 dte.MainWindow.Visible = false; // optional if you want to See VS doing its thing
@@ -64,11 +68,13 @@ namespace ThomasEditor.utils
                 var solution = dte.Solution;
                 solution.SolutionBuild.Build(true);
                 dte.Quit();
+                MessageFilter.Revoke();
                 return true;
             }catch(Exception e)
             {
                 Debug.Log("Failed to open/build project: " + e.Message);
                 dte.Quit();
+                MessageFilter.Revoke();
                 return false;
             }
         }
@@ -78,7 +84,7 @@ namespace ThomasEditor.utils
             Type type = Type.GetTypeFromProgID("VisualStudio.DTE");
             object obj = Activator.CreateInstance(type, true);
             EnvDTE.DTE dte = (EnvDTE.DTE)obj;
-
+            MessageFilter.Register();
             try
             {
                 dte.MainWindow.Visible = false; // optional if you want to See VS doing its thing
@@ -93,7 +99,93 @@ namespace ThomasEditor.utils
             }
 
             dte.Quit();
+            MessageFilter.Revoke();
         }
 
+    }
+
+    public class MessageFilter : IOleMessageFilter
+    {
+        //
+        // Class containing the IOleMessageFilter
+        // thread error-handling functions.
+
+        // Start the filter.
+        public static void Register()
+        {
+            IOleMessageFilter newFilter = new MessageFilter();
+            IOleMessageFilter oldFilter = null;
+            CoRegisterMessageFilter(newFilter, out oldFilter);
+        }
+
+        // Done with the filter, close it.
+        public static void Revoke()
+        {
+            IOleMessageFilter oldFilter = null;
+            CoRegisterMessageFilter(null, out oldFilter);
+        }
+
+        //
+        // IOleMessageFilter functions.
+        // Handle incoming thread requests.
+        int IOleMessageFilter.HandleInComingCall(int dwCallType,
+          System.IntPtr hTaskCaller, int dwTickCount, System.IntPtr
+          lpInterfaceInfo)
+        {
+            //Return the flag SERVERCALL_ISHANDLED.
+            return 0;
+        }
+
+        // Thread call was rejected, so try again.
+        int IOleMessageFilter.RetryRejectedCall(System.IntPtr
+          hTaskCallee, int dwTickCount, int dwRejectType)
+        {
+            if (dwRejectType == 2)
+            // flag = SERVERCALL_RETRYLATER.
+            {
+                // Retry the thread call immediately if return >=0 & 
+                // <100.
+                return 99;
+            }
+            // Too busy; cancel call.
+            return -1;
+        }
+
+        int IOleMessageFilter.MessagePending(System.IntPtr hTaskCallee,
+          int dwTickCount, int dwPendingType)
+        {
+            //Return the flag PENDINGMSG_WAITDEFPROCESS.
+            return 2;
+        }
+
+        // Implement the IOleMessageFilter interface.
+        [DllImport("Ole32.dll")]
+        private static extern int
+          CoRegisterMessageFilter(IOleMessageFilter newFilter, out
+          IOleMessageFilter oldFilter);
+    }
+
+    [ComImport(), Guid("00000016-0000-0000-C000-000000000046"),
+    InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IOleMessageFilter
+    {
+        [PreserveSig]
+        int HandleInComingCall(
+            int dwCallType,
+            IntPtr hTaskCaller,
+            int dwTickCount,
+            IntPtr lpInterfaceInfo);
+
+        [PreserveSig]
+        int RetryRejectedCall(
+            IntPtr hTaskCallee,
+            int dwTickCount,
+            int dwRejectType);
+
+        [PreserveSig]
+        int MessagePending(
+            IntPtr hTaskCallee,
+            int dwTickCount,
+            int dwPendingType);
     }
 }

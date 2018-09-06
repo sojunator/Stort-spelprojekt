@@ -9,6 +9,7 @@
 #include "resource\Material.h"
 #include "editor\EditorCamera.h"
 #include "editor\gizmos\Gizmos.h"
+#include "utils\Primitives.h"
 #include <D3d11_4.h>
 
 namespace thomas 
@@ -27,17 +28,18 @@ namespace thomas
 		s_logOutput.reserve(10);
 
 		//Init all required classes
-		assert(InitDirectX());
-		assert(Input::Init());
+		InitDirectX();
+		Input::Init();
 		resource::Texture2D::Init();
-		assert(ThomasTime::Init());
-		assert(Sound::Init());
-		assert(resource::Shader::Init());
+		ThomasTime::Init();
+		Sound::Init();
+		resource::Shader::Init();
 
 		resource::Material::Init();
-		assert(Physics::Init());
+		Physics::Init();
 		editor::EditorCamera::Init();
 		editor::Gizmos::Init();
+		utils::Primitives::Init();
 
 		s_initialized = true;
 		return s_initialized;
@@ -82,6 +84,7 @@ namespace thomas
 		object::Object::Destroy();
 		editor::EditorCamera::Destroy();
 		editor::Gizmos::Destroy();
+		utils::Primitives::Destroy();
 		Physics::Destroy();
 		Sound::Destroy();
 		ImGui::DestroyContext(s_imGuiContext);
@@ -132,7 +135,7 @@ namespace thomas
 		if (!s_device)
 		{
 			CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
-			assert(CreateDeviceAndContext());
+			CreateDeviceAndContext();
 #ifdef _DEBUG_DX
 			assert(!ThomasCore::GetDevice()->QueryInterface(IID_PPV_ARGS(&s_debug)));
 #endif

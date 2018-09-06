@@ -70,7 +70,7 @@ namespace thomas
 			viewDesc.Texture2D.MostDetailedMip = 0;
 			
 			HRESULT hr;
-			if (initData)
+			if (initData != nullptr)
 			{
 				D3D11_SUBRESOURCE_DATA TexInitData;
 				ZeroMemory(&TexInitData, sizeof(D3D11_SUBRESOURCE_DATA));
