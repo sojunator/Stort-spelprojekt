@@ -169,7 +169,7 @@ namespace ThomasEditor
         private void AddEmptyGameObject(object sender, RoutedEventArgs e)
         {
             var x = new GameObject("gameObject");
-            ThomasWrapper.SelectGameObject(x);
+            ThomasWrapper.Selection.SelectGameObject(x);
         }
 
         private void OpenOptionsWindow_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -197,9 +197,9 @@ namespace ThomasEditor
 
         private void RemoveSelectedGameObjects(object sender, RoutedEventArgs e)
         {
-            for(int i=0; i < ThomasWrapper.SelectedGameObjects.Count; i++)
+            for(int i=0; i < ThomasWrapper.Selection.Count; i++)
             {
-                GameObject gObj = ThomasWrapper.SelectedGameObjects[i];
+                GameObject gObj = ThomasWrapper.Selection.op_Subscript(i);
                 gObj.Destroy();
                 //ThomasWrapper.SelectedGameObjects.RemoveAt(i);
                i--;
@@ -336,37 +336,37 @@ namespace ThomasEditor
         private void AddNewCubePrimitive(object sender, RoutedEventArgs e)
         {
             var x = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            ThomasWrapper.SelectGameObject(x);
+            ThomasWrapper.Selection.SelectGameObject(x);
         }
 
         private void AddNewSpherePrimitive(object sender, RoutedEventArgs e)
         {
             var x = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            ThomasWrapper.SelectGameObject(x);
+            ThomasWrapper.Selection.SelectGameObject(x);
         }
 
         private void AddNewQuadPrimitive(object sender, RoutedEventArgs e)
         {
             var x = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            ThomasWrapper.SelectGameObject(x);
+            ThomasWrapper.Selection.SelectGameObject(x);
         }
 
         private void AddNewPlanePrimitive(object sender, RoutedEventArgs e)
         {
             var x = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            ThomasWrapper.SelectGameObject(x);
+            ThomasWrapper.Selection.SelectGameObject(x);
         }
 
         private void AddNewCylinderPrimitive(object sender, RoutedEventArgs e)
         {
             var x = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            ThomasWrapper.SelectGameObject(x);
+            ThomasWrapper.Selection.SelectGameObject(x);
         }
 
         private void AddNewCapsulePrimitive(object sender, RoutedEventArgs e)
         {
             var x = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            ThomasWrapper.SelectGameObject(x);
+            ThomasWrapper.Selection.SelectGameObject(x);
         }
 
         #endregion

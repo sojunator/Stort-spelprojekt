@@ -23,7 +23,7 @@ namespace ThomasEngine
 
 	void Scene::CurrentScene::set(Scene^ value)
 	{
-		ThomasWrapper::UnselectGameObjects();
+		ThomasWrapper::Selection->UnselectGameObjects();
 		s_currentScene = value;
 		if(Application::currentProject)
 			Application::currentProject->currentScenePath = value->m_relativeSavePath;

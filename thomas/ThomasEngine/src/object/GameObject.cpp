@@ -19,8 +19,8 @@ void ThomasEngine::GameObject::Destroy()
 	Object::Destroy();
 	m_components.Clear();
 	Monitor::Exit(m_componentsLock);
+	ThomasWrapper::Selection->UnSelectGameObject(this);
 	Scene::CurrentScene->GameObjects->Remove(this);
-	ThomasWrapper::SelectedGameObjects->Remove(this);
 	Monitor::Exit(Scene::CurrentScene->GetGameObjectsLock());
 }
 

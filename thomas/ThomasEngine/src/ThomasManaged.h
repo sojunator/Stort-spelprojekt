@@ -19,6 +19,7 @@
 #include "object\component\Transform.h"
 #include "Scene.h"
 #include "ScriptingManager.h"
+#include "ThomasSelection.h"
 
 using namespace System;
 using namespace System::Collections::Generic;
@@ -40,6 +41,8 @@ namespace ThomasEngine {
 		static bool playing = false;	
 		static ManualResetEvent^ RenderFinished;
 		static ManualResetEvent^ UpdateFinished;
+		static ObservableCollection<String^>^ s_OutputLog = gcnew ObservableCollection<String^>();
+		static ThomasSelection^ s_Selection = gcnew ThomasSelection();
 	public:
 		delegate void UpdateEditor();
 		static event UpdateEditor^ OnEditorUpdate;
@@ -50,292 +53,54 @@ namespace ThomasEngine {
 			SCALE
 		};
 
-		static void Start() {
-			thomas::ThomasCore::Init();
-			if (ThomasCore::Initialized())
-			{
-				Resources::LoadAll(Application::editorAssets);
-				RenderFinished = gcnew ManualResetEvent(true);
-				UpdateFinished = gcnew ManualResetEvent(false);
-				ScriptingManger::Init();
-				Scene::CurrentScene = gcnew Scene("test");
-				LOG("Thomas fully initiated, Chugga-chugga-whoo-whoo!");
-				mainThread = gcnew Thread(gcnew ThreadStart(StartEngine));
-				mainThread->Name = "Thomas Engine (Main Thread)";
-				mainThread->Start();
+		static void Start();
 
-				renderThread = gcnew Thread(gcnew ThreadStart(StartRenderer));
-				renderThread->Name = "Thomas Engine (Render Thread)";
-				renderThread->Start();
-			}
+		static void UpdateEditor();
 
-		}
+		static void StartRenderer();
 
-		static void UpdateEditor()
-		{
-			updateEditor = true;
-		}
+		static void CopyCommandList();
 
-		static void StartRenderer()
-		{
-						
-			while (ThomasCore::Initialized())
-			{
-				UpdateFinished->WaitOne();
-				UpdateFinished->Reset();
-				Window::ClearAllWindows();
-				thomas::graphics::Renderer::ProcessCommands();
-				thomas::Window::PresentAllWindows();
-				RenderFinished->Set();
-				thomas::ThomasTime::Update();
-			}
-		}
+		static void StartEngine();
 
-		static void CopyCommandList()
-		{
-			thomas::Window::EndFrame(true);
-			thomas::graphics::Renderer::TransferCommandList();
-			thomas::editor::Gizmos::TransferGizmoCommands();
-		}
+		static void Exit();
 
-		static void StartEngine()
-		{
-			while (ThomasCore::Initialized())
-			{
-				
-				if (Scene::IsLoading())
-				{
-					Thread::Sleep(1000);
-					continue;
-				}
-				
-				Object^ lock = Scene::CurrentScene->GetGameObjectsLock();
+		static void CreateThomasWindow(IntPtr hWnd, bool isEditor);
 
-				if (Window::WaitingForUpdate()) //Make sure that we are not rendering when resizing the window.
-					RenderFinished->WaitOne();
-				Window::Update();
-				
+		static void eventHandler(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
-				ThomasCore::Update();
-				Monitor::Enter(lock);
-					
-				if (playing)
-				{
-					//Physics
-					thomas::Physics::UpdateRigidbodies();
-					for (int i = 0; i < Scene::CurrentScene->GameObjects->Count; i++)
-					{
-						GameObject^ gameObject = Scene::CurrentScene->GameObjects[i];
-						if (gameObject->GetActive())
-							gameObject->FixedUpdate(); //Should only be ran at fixed timeSteps.
-					}
-					thomas::Physics::Simulate();
-				}
+		static void Resize(IntPtr hWnd, double width, double height);
 
-				//Logic
-				for (int i = 0; i < Scene::CurrentScene->GameObjects->Count; i++)
-				{
-					GameObject^ gameObject = Scene::CurrentScene->GameObjects[i];
-					if(gameObject->GetActive())
-						gameObject->Update();
-				}
+		static void Update();
 
+		static Guid selectedGUID;
+		static void Play();
 
+		static bool IsPlaying();
 
-				//Rendering
-					
-				graphics::Renderer::ClearCommands();
-				editor::Gizmos::ClearGizmos();
-				if (Window::GetEditorWindow() && Window::GetEditorWindow()->Initialized())
-				{
-						
-					editor::EditorCamera::Render();
-					for (int i = 0; i < Scene::CurrentScene->GameObjects->Count; i++)
-					{
-						GameObject^ gameObject = Scene::CurrentScene->GameObjects[i];
-						if(gameObject->GetActive())
-							gameObject->RenderGizmos();
-					}
+		static void Stop();
 
-					Monitor::Enter(SelectedGameObjects);
-					for each(ThomasEngine::GameObject^ gameObject in SelectedGameObjects)
-					{
-						if(gameObject->GetActive())
-							gameObject->RenderSelectedGizmos();
-					}
-					Monitor::Exit(SelectedGameObjects);
-					//end editor rendering
+		static void SetEditorGizmoManipulatorOperation(ManipulatorOperation op);
 
-					for (object::component::Camera* camera : object::component::Camera::s_allCameras)
-					{
-						camera->Render();
-					}
-					RenderFinished->WaitOne();
-					CopyCommandList();
-					RenderFinished->Reset();
-					UpdateFinished->Set();
-				}
-				Monitor::Exit(lock);
+		static ManipulatorOperation GetEditorGizmoManipulatorOperation();
 
-				if (updateEditor)
-					OnEditorUpdate();
-				updateEditor = false;
-			}
-			Resources::UnloadAll();
-			ThomasCore::Destroy();
-				
-		}
+		static void ToggleEditorGizmoManipulatorMode();
 
-		static void Exit() {
-			thomas::ThomasCore::Exit();
-		}
-		static ObservableCollection<GameObject^>^ SelectedGameObjects = gcnew ObservableCollection<GameObject^>();
-		static ObservableCollection<String^>^ OutputLog = gcnew ObservableCollection<String^>();
+		static void UpdateLog();
 
-		static void CreateThomasWindow(IntPtr hWnd, bool isEditor)
-		{
-			if (thomas::ThomasCore::Initialized()) {
-				if (isEditor)
-					thomas::Window::InitEditor((HWND)hWnd.ToPointer());
-				else
-					thomas::Window::Create((HWND)hWnd.ToPointer());
-
-			}
-				
-		}
+	public:
 
 		static property float FrameRate
 		{
 			float get() { return float(thomas::ThomasTime::GetFPS()); }
 		}
-		
-
-		static void eventHandler(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam) {
-			thomas::Window::EventHandler((HWND)hWnd.ToPointer(), msg, (WPARAM)wParam.ToPointer(), (LPARAM)lParam.ToPointer());
-		}
-
-		static void Resize(IntPtr hWnd, double width, double height)
+		static property ObservableCollection<String^>^ OutputLog
 		{
-			Window* window = thomas::Window::GetWindow((HWND)hWnd.ToPointer());
-			if (window)
-				window->QueueResize();
+			ObservableCollection<String^>^ get() { return s_OutputLog; }
 		}
-
-		static void Update() 
-		{
-			Window::UpdateFocus();
-			UpdateLog();
-			if (thomas::editor::EditorCamera::HasSelectionChanged())
-				UpdateSelectedObjects();
-		}
-
-		static Guid selectedGUID;
-		static void Play()
-		{
-			ThomasEngine::Resources::OnPlay();
-			Scene::CurrentScene->Play();
-			playing = true;
-			
-		}
-
-		static bool IsPlaying()
-		{
-			return playing;
-		}
-
-		static void Stop()
-		{
-			if (SelectedGameObjects->Count > 0)
-				selectedGUID = SelectedGameObjects[0]->m_guid;
-			else
-				selectedGUID = Guid::Empty;
-			playing = false;
-			Scene::RestartCurrentScene();
-			ThomasEngine::Resources::OnStop();
-			if (selectedGUID != Guid::Empty)
-			{
-				GameObject^ gObj = (GameObject^)ThomasEngine::Object::Find(selectedGUID);
-				if (gObj)
-					SelectGameObject(gObj);
-			}
-				
-		}
-
-		static void SelectGameObject(GameObject^ gObj)
-		{
-			Monitor::Enter(SelectedGameObjects);
-			SelectedGameObjects->Clear();
-			SelectedGameObjects->Add(gObj);
-			thomas::editor::EditorCamera::SelectObject((thomas::object::GameObject*)gObj->nativePtr);
-			Monitor::Exit(SelectedGameObjects);
-
-		}
-
-		static void UnselectGameObjects()
-		{
-			Monitor::Enter(SelectedGameObjects);
-			SelectedGameObjects->Clear();
-			thomas::editor::EditorCamera::SelectObject(nullptr);
-			Monitor::Exit(SelectedGameObjects);
-		}
-
-		static void UpdateSelectedObjects() {
-			List<GameObject^> tempSelectedGameObjects;
-			Monitor::Enter(SelectedGameObjects);
-			for (thomas::object::GameObject* gameObject : thomas::editor::EditorCamera::GetSelectedObjects())
-			{
-				GameObject^ gObj = (GameObject^)ThomasEngine::Object::GetObject(gameObject);
-				if (gObj)
-					tempSelectedGameObjects.Add(gObj);
-			}
-			if (tempSelectedGameObjects.Count == SelectedGameObjects->Count)
-			{
-				if(tempSelectedGameObjects.Count > 0)
-					if (tempSelectedGameObjects[0] != SelectedGameObjects[0])
-					{
-						SelectedGameObjects->Clear();
-						for each(GameObject^ gObj in tempSelectedGameObjects)
-							SelectedGameObjects->Add(gObj);
-					}
-			}
-			else
-			{
-				SelectedGameObjects->Clear();
-				for each(GameObject^ gObj in tempSelectedGameObjects)
-					SelectedGameObjects->Add(gObj);
-			}
-			Monitor::Exit(SelectedGameObjects);
-			thomas::editor::EditorCamera::SetHasSelectionChanged(false);
-		}
-
-		static void SetEditorGizmoManipulatorOperation(ManipulatorOperation op)
-		{
-			thomas::editor::EditorCamera::SetManipulatorOperation((ImGuizmo::OPERATION)op);
-		}
-
-		static ManipulatorOperation GetEditorGizmoManipulatorOperation()
-		{
-			return (ManipulatorOperation)thomas::editor::EditorCamera::GetManipulatorOperation();
-		}
-
-		static void ToggleEditorGizmoManipulatorMode()
-		{
-			thomas::editor::EditorCamera::ToggleManipulatorMode();
-		}
-
-		static void UpdateLog() {
-			std::vector<std::string> nativeOutputs = thomas::ThomasCore::GetLogOutput();
-			
-			for (int i = 0; i < nativeOutputs.size(); i++) {
-				String^ output = gcnew String(nativeOutputs.at(i).c_str());
-				if (OutputLog->Count == 0 || OutputLog[OutputLog->Count - 1] != output)
-				{
-					OutputLog->Add(output);
-					if (OutputLog->Count > 10)
-						OutputLog->RemoveAt(0);
-				}
-			}
-			thomas::ThomasCore::ClearLogOutput();
+		static ThomasSelection^ getSelection() { return s_Selection; }
+		static property ThomasSelection^ Selection {
+			ThomasSelection^ get() { return s_Selection; }
 		}
 
 	};

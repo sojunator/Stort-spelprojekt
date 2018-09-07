@@ -26,7 +26,7 @@ namespace ThomasEditor
             InitializeComponent();
             Scene.sceneChanged = SceneGameObjectsChanged;
             Scene.CurrentScene.GameObjects.CollectionChanged += SceneGameObjectsChanged;
-            ThomasWrapper.SelectedGameObjects.CollectionChanged += SceneSelectedGameObjectChanged;
+            ThomasWrapper.Selection.Ref.CollectionChanged += SceneSelectedGameObjectChanged;
             ThomasWrapper.OnEditorUpdate += ThomasWrapper_OnEditorUpdate;
             instance = this;
         }
@@ -39,7 +39,7 @@ namespace ThomasEditor
         private void BuildTree(ThomasEngine.Transform parent, TreeViewItem parentTree)
         {
             parentTree.IsExpanded = true;
-            if (ThomasWrapper.SelectedGameObjects.Contains(parent.gameObject))
+            if (ThomasWrapper.Selection.Contain(parent.gameObject))
                 parentTree.IsSelected = true;
 
             foreach (ThomasEngine.Transform child in parent.children)
@@ -79,7 +79,7 @@ namespace ThomasEditor
             if(hierarchy.SelectedItem != null)
             {
                 wasUnselected = true;
-                ThomasWrapper.UnselectGameObjects();
+                ThomasWrapper.Selection.UnselectGameObjects();
             }
             
         }
@@ -201,8 +201,9 @@ namespace ThomasEditor
                 if (item != null)
                 {
                     Inspector.instance.SelectedObject = (GameObject)item.DataContext;
-                    if (!ThomasWrapper.SelectedGameObjects.Contains((GameObject)item.DataContext))
-                        ThomasWrapper.SelectGameObject((GameObject)item.DataContext);
+                    
+                    if (!ThomasWrapper.Selection.Contain((GameObject)item.DataContext))
+                        ThomasWrapper.Selection.SelectGameObject((GameObject)item.DataContext);
                 }
 
             }else
