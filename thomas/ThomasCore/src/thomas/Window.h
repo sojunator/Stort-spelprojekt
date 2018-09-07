@@ -6,7 +6,8 @@
 #include <Windows.h>
 #include <vector>
 #include <d3d11.h>
-#include <imgui\imgui.h>
+#include <imgui/imgui.h>
+#include "editor/gui/EditorGUI.hpp"
 
 namespace thomas 
 {
@@ -92,8 +93,6 @@ namespace thomas
 		bool m_focused;
 		float m_aspectRatio;
 		std::string m_title;
-
-	private:
 		WNDCLASSEX m_windowClassInfo;
 		HWND m_windowHandler;
 		RECT m_windowRectangle;
@@ -104,6 +103,7 @@ namespace thomas
 		static std::vector<Window*> s_windows;
 		static Window* s_editorWindow;
 		static Window* s_current;
+		static editor::EditorGUI m_editorGUI;
 	};
 }
 

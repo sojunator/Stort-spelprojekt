@@ -28,6 +28,7 @@
     <ClCompile Include="src\thomas\editor\EditorCamera.cpp" />
     <ClCompile Include="src\thomas\editor\EditorGrid.cpp" />
     <ClCompile Include="src\thomas\editor\gizmos\Gizmos.cpp" />
+    <ClCompile Include="src\thomas\editor\gui\EditorGUI.cpp" />
     <ClCompile Include="src\thomas\object\component\physics\BoxCollider.cpp" />
     <ClCompile Include="src\thomas\object\component\physics\Collider.cpp" />
     <ClCompile Include="src\thomas\object\component\physics\MeshCollider.cpp" />
@@ -77,6 +78,7 @@
     <ClInclude Include="src\thomas\editor\EditorCamera.h" />
     <ClInclude Include="src\thomas\editor\EditorGrid.h" />
     <ClInclude Include="src\thomas\editor\gizmos\Gizmos.h" />
+    <ClInclude Include="src\thomas\editor\gui\EditorGUI.hpp" />
     <ClInclude Include="src\thomas\object\component\physics\BoxCollider.h" />
     <ClInclude Include="src\thomas\object\component\physics\Collider.h" />
     <ClInclude Include="src\thomas\object\component\physics\MeshCollider.h" />

@@ -12,6 +12,7 @@ namespace thomas
 	std::vector<Window*> Window::s_windows;
 	Window* Window::s_editorWindow = nullptr;
 	Window* Window::s_current = nullptr;
+	editor::EditorGUI Window::m_editorGUI;
 
 	Window::Window(HINSTANCE hInstance, int nCmdShow, const LONG & width, const LONG & height, const LPCSTR & title) : m_focused(false), m_created(false), 
 		m_shouldResize(false), m_width(width), m_height(height), m_title(std::string(title)), m_showCursor(false), m_fullScreen(false)
@@ -452,6 +453,7 @@ namespace thomas
 	void Window::BeginFrame()
 	{
 		ImGui_ImplDX11_NewFrame();
+		m_editorGUI.UpdateEditorGUI();
 		ImGuizmo::BeginFrame();
 	}
 
