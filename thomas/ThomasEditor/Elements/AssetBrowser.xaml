@@ -39,7 +39,7 @@
                         <MenuItem Header="Reimport" IsEnabled="{Binding}" Click="Menu_Reimport"/>
                         <MenuItem Header="Reimport All" Click="Menu_ReimportAll" IsEnabled="false"/>
                         <Separator/>
-                        <MenuItem Header="Open C# Project" Click="Menu_OpenCSharpProject" IsEnabled="false"/>
+                        <MenuItem Header="Open C# Project" Click="Menu_OpenCSharpProject" IsEnabled="true"/>
                     </ContextMenu>
                 </TreeView.ContextMenu>
             </TreeView>

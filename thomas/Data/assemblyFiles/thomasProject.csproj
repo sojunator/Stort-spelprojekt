@@ -39,7 +39,7 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="ThomasEngine">
-      <HintPath>K:\Users\Morgan Cromell\Documents\thomas\ReleaseEditorBuild\ThomasEngine.dll</HintPath>
+      <HintPath>$(THOMAS_ENGINE)\ThomasEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

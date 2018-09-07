@@ -103,7 +103,15 @@ namespace ThomasEditor
                         visibleName = Path.GetFileNameWithoutExtension(newPath);
 
                    (stack.Children[1] as EditableTextBlock).Text = visibleName;
-                    
+
+
+                    if (newType == ThomasEngine.Resources.AssetTypes.SCRIPT)
+                    {
+                        string capitalized = visibleName.Substring(0, 1).ToUpper() + visibleName.Substring(1);
+                        string text = File.ReadAllText(newPath);
+                        text = text.Replace("$itemname$", capitalized);
+                        File.WriteAllText(newPath, text);
+                    }
                 }
                 else
                 {
@@ -462,7 +470,21 @@ namespace ThomasEditor
 
         private void Menu_CreateCSharpScript(object sender, RoutedEventArgs e)
         {
-
+            string selectedDir = ThomasEngine.Application.currentProject.assetPath;
+            //Här väntar vi på bättre tider...
+            //if (fileTree.SelectedItem != null)
+            //{
+            //    TreeViewItem item = fileTree.SelectedItem as TreeViewItem;
+            //    StackPanel stack = item.Header as StackPanel;
+            //    String fullPath = stack.DataContext as String;
+            //    if (System.IO.Directory.Exists(fullPath))
+            //        selectedDir = fullPath;
+            //    else
+            //        selectedDir = System.IO.Path.GetDirectoryName(fullPath);
+            //}
+            System.IO.File.Copy(ThomasEngine.Application.editorAssets + "\\assemblyFiles\\newComponent.cs", selectedDir + "\\newComponent.cs");
+            renameNextAddedItem = true;
+            
         }
 
         private void Menu_CreateShader(object sender, RoutedEventArgs e)
@@ -539,7 +561,8 @@ namespace ThomasEditor
 
         private void Menu_OpenCSharpProject(object sender, RoutedEventArgs e)
         {
-
+            if(ThomasEngine.Application.currentProject != null)
+                System.Diagnostics.Process.Start(utils.ScriptAssemblyManager.assemblyPath);
         }
         #endregion
 
