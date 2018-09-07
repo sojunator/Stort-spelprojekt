@@ -1,0 +1,234 @@
+#pragma warning(disable: 4717) // removes effect deprecation warning.
+
+#include <ThomasCG.hlsl>
+Texture2D ambientTex;
+
+
+SamplerState StandardWrapSampler
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
+
+cbuffer MATERIAL_PROPERTIES
+{
+    
+	float4 wow : COLOR;
+};
+
+
+DepthStencilState EnableDepth
+{
+	DepthEnable = TRUE;
+	DepthWriteMask = ALL;
+	DepthFunc = LESS_EQUAL;
+};
+
+RasterizerState TestRasterizer
+{
+	FillMode = SOLID;
+	CullMode = BACK;
+	FrontCounterClockWise = TRUE;
+	DepthClipEnable = FALSE;
+};
+
+
+BlendState AlphaBlendingOn
+{
+	BlendEnable[0] = TRUE;
+	SrcBlend = SRC_ALPHA;
+	DestBlend = INV_SRC_ALPHA;
+	BlendOp = ADD;
+	SrcBlendAlpha = ZERO;
+	DestBlendAlpha = ZERO;
+	BlendOpAlpha = ADD;
+	RenderTargetWriteMask[0] = 0x0F;
+
+};
+
+float3 GetHalfwayVec(float3 lightDir, float3 viewDir)
+{
+    return normalize(viewDir + lightDir);
+}
+
+struct v2f {
+	float4 vertex : SV_POSITION;
+	float4 worldPos : POSITIONWS;
+	float3 normal : NORMAL;
+    float2 texcoord : TEXCOORD0;
+};
+
+v2f vert(appdata_thomas v)
+{
+	v2f o;
+
+    //float3x3 boneTransform = v.boneWeight.boneIndex0 * v.boneWeight.weight0;
+    //boneTransform += v.boneWeight.boneIndex1 * v.boneWeight.weight1;
+    //boneTransform += v.boneWeight.boneIndex2 * v.boneWeight.weight2;
+    //boneTransform += v.boneWeight.boneIndex3 * v.boneWeight.weight3;
+    //float3 posL = mul(boneTransform, v.vertex);
+    //float3 normalL = mul(boneTransform, v.normal);
+
+    float3 posL = v.vertex;
+    float3 normalL = v.normal;
+
+    o.vertex = ThomasObjectToClipPos(posL);
+    o.worldPos = ThomasObjectToWorldPos(posL);
+    o.normal = ThomasWorldToObjectDir(normalL);
+    o.texcoord = v.texcoord;
+	return o;
+}
+
+/*struct Light
+{
+    float4  color;
+    float4  position;
+    float4  direction;
+    float   intensity;
+    float   smoothness; //specularIntensity
+    float   spotInnerAngle;
+    float   spotOuterAngle;
+    float3  attenuation;
+    uint    type;
+};*/
+
+struct ConstantBufferForLights
+{
+    uint nrOfPointLights;
+    uint nrOfSpotLights;
+    uint nrOfDirectionalLights;
+    uint pad;
+};
+
+struct Light
+{
+	float3  color;
+	float   intensity;
+	float3  position;
+	float   spotOuterAngle;
+	float3  direction;
+	float   spotInnerAngle;
+	float3  attenuation;
+    float   pad;
+
+    
+};
+
+
+float CalculatePointLightContribution(float4 lightColor, float lightIntensity, float lightDistance, float3 lightAttenuation)
+{
+	return lightColor * lightIntensity / (lightAttenuation.x + lightAttenuation.y * lightDistance + lightAttenuation.z * lightDistance * lightDistance);
+}
+
+/*float CalculateSpotLightFactor()
+{
+	float angle = degrees(acos(dot(-tempLight.direction, lightDir)));
+	float spotFactor = 0.0f;
+	if (angle < tempLight.spotInnerAngle)
+	{
+		spotFactor = 1.0f;
+	}
+	else if (angle < tempLight.spotOuterAngle)
+	{
+		spotFactor = 1.0f - smoothstep(tempLight.spotInnerAngle, tempLight.spotOuterAngle, angle);
+	}
+	return spotFactor;
+}*/
+
+void Apply(inout float4 colorAcculmulator, float3 lightMultiplyer, float3 normal, float3 diffuse, float3 lightDir, float3 viewDir)//should take material properties later
+{
+    float3 ambient = float3(0.1f, 0.1f, 0.1f);
+    float3 specular = float3(1.0f, 1.0f, 1.0f);
+    float smoothness = 16.0f;
+
+    float lambertian = saturate(dot(normal, lightDir));
+    float specularIntensity = 0.0f;
+    if (lambertian > 0.0f)
+    {
+        specularIntensity = pow(saturate(dot(normal, GetHalfwayVec(viewDir, lightDir))), smoothness); //blinn-phong
+    }
+    
+    colorAcculmulator.xyz += ambient + (diffuse * lambertian + specular * specularIntensity) * lightMultiplyer;
+}
+
+float4 frag(v2f input) : SV_TARGET
+{
+
+    Light tempLight;
+    tempLight.color = float3(0.5f, 0.5f, 0.5f);
+    tempLight.position = float3(3, 3, 3);
+    tempLight.intensity = 1;
+    tempLight.direction = normalize(float3(-0.5, -1, -0.8));
+    tempLight.spotInnerAngle = 10.0f;
+    tempLight.spotOuterAngle = 30.0f;
+    tempLight.attenuation = float3(0.4f, 0.02f, 0.1f);
+
+    ConstantBufferForLights testCBuffer;
+    testCBuffer.nrOfDirectionalLights = 1;
+    testCBuffer.nrOfPointLights = 0;
+    testCBuffer.nrOfSpotLights = 0;
+    
+	float3 diffuse = ambientTex.Sample(StandardWrapSampler, input.texcoord);
+    float4 finalColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    
+    float3 viewDir = normalize(_WorldSpaceCameraPos - input.worldPos.xyz);
+	float3 lightDir = float3(0, 0, 0);
+    float3 lightMultiplyer = float3(0.0f, 0.0f, 0.0f);
+    
+    int i = 0;
+    int roof = testCBuffer.nrOfDirectionalLights;
+    for (; i < roof; ++i) //directional
+    {
+        lightDir = -tempLight.direction;
+        lightMultiplyer = tempLight.color * tempLight.intensity;
+        Apply(finalColor, lightMultiplyer, input.normal, diffuse, lightDir, viewDir);
+    }
+    roof += testCBuffer.nrOfPointLights;
+    for (; i < roof; ++i) //point
+    {
+        lightDir = tempLight.position - input.worldPos.xyz;
+        float lightDistance = length(lightDir);
+        lightDir = normalize(lightDir);
+
+        lightMultiplyer = tempLight.color * tempLight.intensity / (tempLight.attenuation.x + tempLight.attenuation.y * lightDistance + tempLight.attenuation.z * lightDistance * lightDistance);
+		Apply(finalColor, lightMultiplyer, input.normal, diffuse, lightDir, viewDir);
+    }
+    roof += testCBuffer.nrOfSpotLights;
+    for (; i < roof; ++i) //spot
+    {
+        lightDir = tempLight.position - input.worldPos.xyz;
+        float lightDistance = length(lightDir);
+        lightDir = normalize(lightDir);
+
+        float angle = degrees(acos(dot(-tempLight.direction, lightDir)));
+        float spotFactor = 0.0f;
+        if (angle < tempLight.spotInnerAngle)
+        {
+            spotFactor = 1.0f;
+        }
+        else if (angle < tempLight.spotOuterAngle)
+        {
+            spotFactor = 1.0f - smoothstep(tempLight.spotInnerAngle, tempLight.spotOuterAngle, angle);
+        }
+
+        lightMultiplyer = spotFactor * tempLight.color * tempLight.intensity / (tempLight.attenuation.x + tempLight.attenuation.y * lightDistance + tempLight.attenuation.z * lightDistance * lightDistance);
+		Apply(finalColor, lightMultiplyer, input.normal, diffuse, lightDir, viewDir);
+    }
+
+    return float4(saturate(diffuse), 1.f);
+
+}
+
+
+technique11 Standard {
+	pass P0 {
+		VERT(vert());
+		SetGeometryShader(NULL);
+		FRAG(frag());
+		SetDepthStencilState(EnableDepth, 0);
+		SetRasterizerState(TestRasterizer);
+		SetBlendState(AlphaBlendingOn, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
+	}
+
+}

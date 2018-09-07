@@ -221,7 +221,7 @@ namespace thomas
 
 					// A vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't 
 					// use models where a vertex can have multiple texture coordinates so we always take the first set (0).
-					vertices.texCoord0[i] = math::Vector2((float*)&mesh->mTextureCoords[0]);
+					vertices.texCoord0[i] = math::Vector2((float*)&mesh->mTextureCoords[0][i]);
 				}
 			}
 

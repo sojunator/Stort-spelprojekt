@@ -1,0 +1,9 @@
+#Ignore Assets
+*.obj
+*.mtl
+*.fbx
+*.png
+*.jpg
+*.jpeg
+*.tga
+*.tds
