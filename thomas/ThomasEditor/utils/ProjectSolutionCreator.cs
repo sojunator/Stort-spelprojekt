@@ -73,7 +73,7 @@ namespace ThomasEditor.utils
             else
             {
                 Debug.Log("Failed to build project assembly.... :(");
-                return false;
+                return true;
             }
             //Type type = Type.GetTypeFromProgID("VisualStudio.DTE");
             //object obj = Activator.CreateInstance(type, true);

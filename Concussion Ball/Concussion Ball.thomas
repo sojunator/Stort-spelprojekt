@@ -2,6 +2,6 @@
 <Project xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.datacontract.org/2004/07/ThomasEngine">
   <m_name>Concussion Ball</m_name>
   <m_relativeAssemblyPath>Assembly</m_relativeAssemblyPath>
-  <m_relativeCurrentScenePath>test.tds</m_relativeCurrentScenePath>
+  <m_relativeCurrentScenePath i:nil="true" />
   <m_relativeResourcePath>Assets</m_relativeResourcePath>
 </Project>

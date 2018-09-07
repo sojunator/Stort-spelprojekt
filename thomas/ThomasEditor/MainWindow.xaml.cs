@@ -10,6 +10,7 @@ using System.IO;
 
 using ThomasEngine;
 using System.Threading;
+using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
 namespace ThomasEditor
 {
@@ -39,6 +40,77 @@ namespace ThomasEditor
             System.Threading.Thread.CurrentThread.CurrentCulture = customCulture;
             CompositionTarget.Rendering += DoUpdates;
             ThomasWrapper.OutputLog.CollectionChanged += OutputLog_CollectionChanged;
+
+            if (Properties.Settings.Default.latestProjectPath != "")
+                OpenProject(Properties.Settings.Default.latestProjectPath);
+
+
+            LoadLayout();
+            Closing += MainWindow_Closing;
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            SaveLayout();
+        }
+
+        private void SaveLayout()
+        {
+            string target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "thomas/layout.dock");
+            using (var sw = new StreamWriter(target))
+            {
+                using (StringWriter fs = new StringWriter())
+                {
+                    XmlLayoutSerializer xmlLayout = new XmlLayoutSerializer(dockManager);
+                    xmlLayout.Serialize(fs);
+                    sw.Write(fs.ToString());
+                }
+            }
+
+            if (WindowState == WindowState.Maximized)
+            {
+                // Use the RestoreBounds as the current values will be 0, 0 and the size of the screen
+                Properties.Settings.Default.Top = RestoreBounds.Top;
+                Properties.Settings.Default.Left = RestoreBounds.Left;
+                Properties.Settings.Default.Height = RestoreBounds.Height;
+                Properties.Settings.Default.Width = RestoreBounds.Width;
+                Properties.Settings.Default.Maximized = true;
+            }
+            else
+            {
+                Properties.Settings.Default.Top = this.Top;
+                Properties.Settings.Default.Left = this.Left;
+                Properties.Settings.Default.Height = this.Height;
+                Properties.Settings.Default.Width = this.Width;
+                Properties.Settings.Default.Maximized = false;
+            }
+
+            Properties.Settings.Default.Save();
+        }
+
+        private void LoadLayout()
+        {
+            string target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "thomas/layout.dock");
+            if (System.IO.File.Exists(target))
+            {
+                using (var sr = new StreamReader(target))
+                {
+                    using (StringWriter fs = new StringWriter())
+                    {
+                        XmlLayoutSerializer xmlLayout = new XmlLayoutSerializer(dockManager);
+                        xmlLayout.Deserialize(sr);
+                    }
+                }
+            }
+            this.Top = Properties.Settings.Default.Top;
+            this.Left = Properties.Settings.Default.Left;
+            this.Height = Properties.Settings.Default.Height;
+            this.Width = Properties.Settings.Default.Width;
+            // Very quick and dirty - but it does the job
+            if (Properties.Settings.Default.Maximized)
+            {
+                WindowState = WindowState.Maximized;
+            }
         }
 
         private void OutputLog_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -355,28 +427,44 @@ namespace ThomasEditor
 
             if (openFileDialog.ShowDialog() == true)
             {
-                showBusyIndicator("Opening project...");
-
-                Thread worker = new Thread(new ThreadStart(() =>
-                {
-                    string fileName = System.IO.Path.GetFileNameWithoutExtension(openFileDialog.FileName);
-                    string dir = System.IO.Path.GetDirectoryName(openFileDialog.FileName);
-                    if (utils.ScriptAssemblyManager.OpenSolution(dir + "/" + fileName + ".sln"))
-                    {
-                        ThomasEngine.Application.currentProject = Project.LoadProject(openFileDialog.FileName);
-                    }
-                    hideBusyIndicator();
-                }));
-                worker.SetApartmentState(ApartmentState.STA);
-                worker.Start();
+                OpenProject(openFileDialog.FileName);
                 
             }
             
+        }
+        public void OpenProject(string projectPath)
+        {
+            showBusyIndicator("Opening project...");
+
+            Thread worker = new Thread(new ThreadStart(() =>
+            {
+                string fileName = System.IO.Path.GetFileNameWithoutExtension(projectPath);
+                string dir = System.IO.Path.GetDirectoryName(projectPath);
+                if (utils.ScriptAssemblyManager.OpenSolution(dir + "/" + fileName + ".sln"))
+                {
+                    ThomasEngine.Application.currentProject = Project.LoadProject(projectPath);
+                    Properties.Settings.Default.latestProjectPath = projectPath;
+                    Properties.Settings.Default.Save();
+                }
+                hideBusyIndicator();
+            }));
+            worker.SetApartmentState(ApartmentState.STA);
+            worker.Start();
         }
 
         private void ReloadAssembly(object sender, RoutedEventArgs e)
         {
             ScriptingManger.LoadAssembly();
+        }
+
+        private void __layoutRoot_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+
+        }
+
+        private void SaveLayout_Click(object sender, RoutedEventArgs e)
+        {
+            SaveLayout();
         }
     }
 
