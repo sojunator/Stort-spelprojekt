@@ -9,7 +9,7 @@ namespace ThomasEditor.utils
 
     class ScriptAssemblyManager
     {
-        static string assemblyPath = "";
+       public static string assemblyPath = "";
                 
         [STAThread]
         public static bool CreateSolution(string path, string name)

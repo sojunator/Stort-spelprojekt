@@ -38,17 +38,15 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="ThomasEngine" Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-      <HintPath>..\thomas\DebugEditorBuild64\ThomasEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="ThomasEngine" Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-      <HintPath>..\thomas\ReleaseEditorBuild64\ThomasEngine.dll</HintPath>
+    <Reference Include="ThomasEngine">
+      <HintPath>$(THOMAS_ENGINE)\ThomasEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\moveTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Assets\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
