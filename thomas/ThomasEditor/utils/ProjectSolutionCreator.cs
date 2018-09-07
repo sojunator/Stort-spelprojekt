@@ -10,6 +10,8 @@ namespace ThomasEditor.utils
     class ScriptAssemblyManager
     {
         static string assemblyPath = "";
+                
+        [STAThread]
         public static bool CreateSolution(string path, string name)
         {
             Type type = Type.GetTypeFromProgID("VisualStudio.DTE");
@@ -23,7 +25,6 @@ namespace ThomasEditor.utils
 
                 string template = System.IO.Path.GetFullPath("../Data/assemblyFiles/MyTemplate.vstemplate");
                 dte.Solution.AddFromTemplate(template, path, name);
-
                 //create a new solution
                 dte.Solution.Create(path, name + ".sln");
                 var solution = dte.Solution;

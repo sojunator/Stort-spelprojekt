@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.IO;
 
 using ThomasEngine;
+using System.Threading;
 
 namespace ThomasEditor
 {
@@ -304,11 +305,10 @@ namespace ThomasEditor
             saveFileDialog.RestoreDirectory = true;
             saveFileDialog.FileName = "New Project";
 
+            showBusyIndicator("Creating new project...");
             if (saveFileDialog.ShowDialog() == true)
             {
-                BackgroundWorker worker = new BackgroundWorker();
-                showBusyIndicator("Creating new project...");
-                worker.DoWork += (o, ea) =>
+                Thread worker = new Thread(new ThreadStart(() =>
                 {
                     string fileName = System.IO.Path.GetFileNameWithoutExtension(saveFileDialog.FileName);
                     string dir = System.IO.Path.GetDirectoryName(saveFileDialog.FileName);
@@ -318,12 +318,10 @@ namespace ThomasEditor
                         Project proj = new Project(fileName, dir);
                         ThomasEngine.Application.currentProject = proj;
                     }
-                };
-                worker.RunWorkerCompleted += (o, ea) =>
-                {
                     hideBusyIndicator();
-                };
-                worker.RunWorkerAsync();
+                }));
+                worker.SetApartmentState(ApartmentState.STA);
+                worker.Start();
 
             }
                       
@@ -339,9 +337,12 @@ namespace ThomasEditor
         }
         private void hideBusyIndicator()
         {
-            busyCator.IsBusy = false;
-            editor.Visibility = Visibility.Visible;
-            game.Visibility = Visibility.Visible;
+            this.Dispatcher.Invoke((Action)(() =>
+            {
+                busyCator.IsBusy = false;
+                editor.Visibility = Visibility.Visible;
+                game.Visibility = Visibility.Visible;
+            }));
         }
 
         private void OpenProject_Click(object sender, RoutedEventArgs e)
@@ -355,23 +356,19 @@ namespace ThomasEditor
             if (openFileDialog.ShowDialog() == true)
             {
                 showBusyIndicator("Opening project...");
-                BackgroundWorker worker = new BackgroundWorker();
 
-                worker.DoWork += (o, ea) =>
+                Thread worker = new Thread(new ThreadStart(() =>
                 {
-                    
                     string fileName = System.IO.Path.GetFileNameWithoutExtension(openFileDialog.FileName);
                     string dir = System.IO.Path.GetDirectoryName(openFileDialog.FileName);
                     if (utils.ScriptAssemblyManager.OpenSolution(dir + "/" + fileName + ".sln"))
                     {
                         ThomasEngine.Application.currentProject = Project.LoadProject(openFileDialog.FileName);
                     }
-                };
-                worker.RunWorkerCompleted += (o, ea) =>
-                {
                     hideBusyIndicator();
-                };
-                worker.RunWorkerAsync();
+                }));
+                worker.SetApartmentState(ApartmentState.STA);
+                worker.Start();
                 
             }
             

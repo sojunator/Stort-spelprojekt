@@ -226,7 +226,7 @@ namespace ThomasEditor
                 ThomasEngine.Resources.AssetTypes assetType = ThomasEngine.Resources.GetResourceAssetType(p);
                 if(assetType == ThomasEngine.Resources.AssetTypes.SCRIPT)
                 {
-                    utils.ScriptAssemblyManager.AddScript(p);
+                    //utils.ScriptAssemblyManager.AddScript(p);
                 }
 
             }), e.FullPath);

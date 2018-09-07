@@ -216,6 +216,7 @@ float4 frag(v2f input) : SV_TARGET
         lightMultiplyer = spotFactor * tempLight.color * tempLight.intensity / (tempLight.attenuation.x + tempLight.attenuation.y * lightDistance + tempLight.attenuation.z * lightDistance * lightDistance);
         Apply(finalColor, lightMultiplyer, input.normal, lightDir, viewDir);
     }
+
     return saturate(finalColor);
 
 }
