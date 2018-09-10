@@ -22,13 +22,14 @@ namespace ThomasEngine
 				}
 				currentProjectChanged(value);
 				m_currentProject = value;
-				if (m_currentProject->currentScenePath) {
-					Scene^ currentScene = Scene::LoadScene(m_currentProject->currentScenePath);
-					if (currentScene)
-						Scene::CurrentScene = currentScene;
-					else
-						Scene::CurrentScene = gcnew Scene("scene");
-				}
+				Scene^ currentScene;
+				if (m_currentProject->currentScenePath)
+					currentScene = Scene::LoadScene(m_currentProject->currentScenePath);
+				
+				if (currentScene)
+					Scene::CurrentScene = currentScene;
+				else
+					Scene::CurrentScene = gcnew Scene("scene");
 			}
 		}
 	};
