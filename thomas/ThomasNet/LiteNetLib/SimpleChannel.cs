@@ -1,39 +1,28 @@
-using System.Collections.Generic;
-
 namespace LiteNetLib
 {
-    internal sealed class SimpleChannel
+    internal sealed class SimpleChannel : BaseChannel
     {
-        private readonly Queue<NetPacket> _outgoingPackets;
-        private readonly NetPeer _peer;
-
-        public SimpleChannel(NetPeer peer)
+        public SimpleChannel(NetPeer peer) : base(peer)
         {
-            _outgoingPackets = new Queue<NetPacket>();
-            _peer = peer;
+
         }
 
-        public void AddToQueue(NetPacket packet)
+        public override void SendNextPackets()
         {
-            lock (_outgoingPackets)
+            lock (OutgoingQueue)
             {
-                _outgoingPackets.Enqueue(packet);
+                while (OutgoingQueue.Count > 0)
+                {
+                    NetPacket packet = OutgoingQueue.Dequeue();
+                    Peer.SendRawData(packet);
+                    Peer.Recycle(packet);
+                }
             }
         }
 
-        public bool SendNextPacket()
+        public override void ProcessPacket(NetPacket packet)
         {
-            if (_outgoingPackets.Count == 0)
-                return false;
-
-            NetPacket packet;
-            lock (_outgoingPackets)
-            {
-                packet = _outgoingPackets.Dequeue();
-            }
-            _peer.SendRawData(packet.RawData);
-            _peer.Recycle(packet);
-            return true;
+            
         }
     }
 }
